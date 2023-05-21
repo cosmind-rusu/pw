@@ -1,0 +1,32 @@
+version: '3'
+services:
+  k6:
+    image: loadimpact/k6
+    volumes:
+      - ./scripts:/scripts
+    command: run -o experimental-prometheus-rw /scripts/basic.js
+    networks:
+      - pw
+    environment:
+      - K6_PROMETHEUS_REMOTE_WRITE_URL=http://prometheus:9090/api/v1/write
+      - K6_PROMETHEUS_REMOTE_WRITE_INTEGRITY="sha256:YOUR_INTEGRITY_HASH"
+      - K6_PROMETHEUS_REMOTE_WRITE_TENANT="YOUR_TENANT"
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - pw
+    ports:
+      - 9090:9090
+  grafana:
+    image: grafana/grafana
+    networks:
+      - pw
+    ports:
+      - 3000:3000
+
+networks:
+  pw:
